@@ -49,6 +49,36 @@ homicide_data <-
   filter(city_state != "Tulsa, AL") 
 ```
 
+The resulting dataframe `homicide_data` has information on `r colnames(homicide_data)` and has been cleaned. 
+
 ## Proportion of unsolved homicides in Baltimore
+
+```{r prop_baltimore}
+
+# Proportion test to estimite the proportion of unsolved homicides in Baltimore
+
+# filter and select relevant data
+
+baltimore <- homicide_data %>%
+  filter(city_state == "Baltimore, MD") %>%
+  select(resolution) %>%
+  summarize(
+    hom_total = n(),
+    hom_unsolved = sum(resolution == "unsolved")
+  )
+
+# perform proportion test
+
+baltimore_prop <- 
+    prop.test(
+    x = baltimore %>% pull(hom_unsolved),
+    n = baltimore %>% pull(hom_total)) 
+
+broom::tidy(baltimore_prop) %>% 
+  knitr::kable(digits = 3)
+
+```
+
+The proportion of unsolved homicides in Baltimore is  `r baltimore_prop$estimate`. See above table for details. 
 
 
