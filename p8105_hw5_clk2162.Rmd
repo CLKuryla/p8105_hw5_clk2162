@@ -81,4 +81,42 @@ broom::tidy(baltimore_prop) %>%
 
 The proportion of unsolved homicides in Baltimore is  `r baltimore_prop$estimate`. See above table for details. 
 
+## Proportion of unsolved homicides for all cities in dataset
+
+Note, this code is adapted from the solutions. 
+
+```{r}
+
+# Create a df summarizing the total and unsolved number of homicides in all the cities in the dataset
+
+city_homicide_df <- 
+  homicide_data %>% 
+  select(city_state, disposition, resolution) %>% 
+  group_by(city_state) %>% 
+  summarize(
+    hom_total = n(),
+    hom_unsolved = sum(resolution == "unsolved")) 
+
+# Run proportion test on all cities and put in a new df
+
+prop_all_cities_results <- 
+  city_homicide_df %>% 
+  mutate(
+    prop_tests = map2(hom_unsolved, hom_total, \(x, y) prop.test(x = x, n = y)),
+    tidy_tests = map(prop_tests, broom::tidy)) %>% 
+  select(-prop_tests) %>% 
+  unnest(tidy_tests) %>% 
+  select(city_state, estimate, conf.low, conf.high) 
+
+# plot results and CIs
+
+prop_all_cities_results %>% 
+  mutate(city_state = fct_reorder(city_state, estimate)) %>% 
+  ggplot(aes(x = city_state, y = estimate)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
 
