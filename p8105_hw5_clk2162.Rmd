@@ -124,7 +124,6 @@ prop_all_cities_results %>%
 This problem analyzes a control and experimental arm over time, where the subjects' data is in separate files. 
 
 ```{r data_import_wrangle, message=FALSE}
-
 # import and combine data
 
 files <- list.files("./data/data-3/")
@@ -150,24 +149,39 @@ experiment_df <- experiment_df %>%
   mutate(group = case_when(
       group == "con" ~ "control",
       group == "exp" ~ "experimental"
-      )
-    ) %>% 
+      )) %>% 
   pivot_longer(cols = week_1:week_8,
                names_to = "week",
                values_to = "value") %>% 
+  mutate(week = str_sub(week, 6,6)) %>% 
+  mutate(week = as.numeric(week)) %>% 
   select(-file_name) %>% 
   relocate(id)
-           
+
+```
+
+The data has been imported by itering over file name using a function, then extracting the values for each week from the imported df, then extracting the group from the name of the file, and finally cleaned and tidied. The final dataframe has the columns `r colnames(experiment_df)`.
+
+Now we will visualize the data.
+
+```{r plot, message=FALSE}
+
 # spaghetti plot of observations on each subject over time
 
 experiment_df %>% 
-  mutate(week = as.factor(week)) %>% 
- # group_by(id) %>% 
-  ggplot(aes(x = week, y = value,  color = group)) +
+  group_by(id) %>% 
+  ggplot(aes(x = week, y = value,  color = group, group = id)) +
   geom_point() +
-  geom_line()
+  geom_line() +
+  labs(
+    title = "Spaghetti plot of value over time",
+    x = "Week",
+    y = "Observed Value"
+  )
 
 ```
+
+The experimental group's observed value seems to increase over time and the control group's value seems relatively constant. The intervention probably increases whatever the outcome variable is.
 
 # Problem 3
 
@@ -198,3 +212,32 @@ Make a plot showing the average estimate of μ̂
  on the x axis. Is the sample average of μ̂
  across tests for which the null is rejected approximately equal to the true value of μ
 ? Why or why not?
+
+```{r q3, eval = FALSE}
+
+# Simulate model repeatedly
+# The model is a normal distribution with mean 0 and sd 5
+# We will sample 30 values each sampling
+
+normal_sample <- function() {
+  
+  # simulate data
+  sample <- rnorm(n = 30, mean = 0, sd = 5)
+  
+  result <- 
+    
+  
+  mean_hat <- mean(sample)
+  p_value <- broom::tidy(t.test(sample))
+}
+
+list(
+  sample = rnorm(n = 30, mean = 0, sd = 5),
+  mean_hat = summarize(mean(sample))
+)
+
+
+
+
+```
+
